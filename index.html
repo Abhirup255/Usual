@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alzheimer's Disease Detection System</title>
+    <style>
+        /* CSS styling for a clean, professional medical interface */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header h2 {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            font-weight: normal;
+            color: #ecf0f1;
+        }
+
+        .main-container {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin-top: 40px;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 6px;
+            padding: 40px;
+            margin: 20px 0;
+            background-color: #f8fbff;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: #2980b9;
+            background-color: #eef6fc;
+        }
+
+        /* Hiding the default ugly file input */
+        input[type="file"] {
+            display: none;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 12px 24px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #2980b9;
+        }
+
+        #file-chosen {
+            margin-top: 15px;
+            display: block;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .predict-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .predict-btn:hover {
+            background-color: #219150;
+        }
+
+        #result-box {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 4px;
+            background-color: #ecf0f1;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            min-height: 24px;
+        }
+
+        .footer {
+            margin-top: auto;
+            background-color: #34495e;
+            color: #bdc3c7;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .footer strong {
+            color: white;
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Alzheimer's Disease Detection</h1>
+        <h2>Using Deep Learning (InceptionV3)</h2>
+    </div>
+
+    <div class="main-container">
+        <h3>Upload MRI Scan</h3>
+        <p style="color: #7f8c8d; font-size: 14px;">Upload a .jpg or .png MRI slice for analysis.</p>
+
+        <form id="upload-form" enctype="multipart/form-data">
+            <div class="upload-area">
+                <label for="file-upload" class="custom-file-upload">
+                    Select Image
+                </label>
+                <input id="file-upload" name="file" type="file" accept=".jpg, .jpeg, .png"/>
+                <span id="file-chosen">No file chosen</span>
+            </div>
+
+            <button type="button" class="predict-btn" onclick="predict()">Analyze Image</button>
+        </form>
+
+        <div id="result-box">
+            Results will appear here...
+        </div>
+    </div>
+
+    <div class="footer">
+        <strong>Project Group 10 | Dept. of CSE</strong>
+        Academy of Technology, West Bengal<br><br>
+        Developed By:<br>
+        Sayan Mandal (16900122012) | Abhirup Nandi (16900122039)<br>
+        Bikramjit Ghosh (16900123194) | Anik Nandi (16900123192)<br>
+        Aritra Chowdhury (16900122006)
+    </div>
+
+    <script>
+        // JavaScript to handle file selection display
+        const actualBtn = document.getElementById('file-upload');
+        const fileChosen = document.getElementById('file-chosen');
+
+        actualBtn.addEventListener('change', function(){
+            fileChosen.textContent = this.files[0].name;
+        });
+
+        // AJAX function to send image to Python backend
+        function predict() {
+            var formData = new FormData(document.getElementById("upload-form"));
+            var resultBox = document.getElementById("result-box");
+            
+            // Validation
+            if (actualBtn.files.length === 0) {
+                resultBox.innerHTML = "<span style='color:red;'>Please select a file first.</span>";
+                return;
+            }
+
+            resultBox.innerHTML = "Processing image...";
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Displaying the result from label_image.py
+                resultBox.innerHTML = data;
+                resultBox.style.backgroundColor = "#dff9fb"; // Light blue highlight
+                resultBox.style.border = "1px solid #c7ecee";
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultBox.innerHTML = "<span style='color:red;'>Error connecting to server.</span>";
+            });
+        }
+    </script>
+</body>
+</html>
